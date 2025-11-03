@@ -1,0 +1,35 @@
+# Production profile - Master label specific configuration
+# This is the stable production configuration
+
+message: Hello from Config Server - PROD/MASTER Branch!
+
+app:
+  version: 1.0.0-RELEASE
+  branch: master
+
+# Production master settings
+feature:
+  stableFeatures: true
+  monitoring: true
+
+# Production database with high availability
+db:
+  url: jdbc:postgresql://prod-db-cluster:5432/demo_prod
+  connection:
+    pool:
+      size: 50
+
+# Production optimizations
+cache:
+  ttl: 3600
+
+api:
+  rate-limit: 10000
+  timeout: 5000
+
+# Production security
+security:
+  enabled: true
+  ssl:
+    enabled: true
+

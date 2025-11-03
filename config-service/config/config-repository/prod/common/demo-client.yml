@@ -1,0 +1,44 @@
+# Production profile - Common configuration
+# Applied to all production environments
+
+message: Hello from Config Server - PROD Environment!
+
+app:
+  description: Demo Client - Production Environment
+  version: 1.0.0
+  environment: production
+
+# Production database settings
+db:
+  url: jdbc:postgresql://prod-db-server:5432/demo_prod
+  username: prod_user
+  password: ${DB_PASSWORD}
+  connection:
+    timeout: 30
+  pool:
+    size: 20
+    min-idle: 5
+
+# Production features
+feature:
+  newUI: false
+  betaFeatures: false
+  debugMode: false
+  caching: true
+
+# Production logging
+logging:
+  level:
+    root: WARN
+    com.quanna: INFO
+
+# Production actuator - limited endpoints
+management:
+  endpoints:
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+

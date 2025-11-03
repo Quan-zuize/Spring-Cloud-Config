@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    config:
+      server:
+        native:
+          search-locations:
+            # Thong tin cau hinh chung: dev, dc, dr
+            - file:./config/config-repository/common/{label}
+             # Thong tin cau hinh chung: redis, rabbit, kafka, db
+            - file:./config/config-repository/{profile}/common/
+            # Thong tin cau hinh cua tung service
+            - file:./config/config-repository/{profile}/{label}/
+  security:
+    user:
+      name: admin
+      password: admin123
+
+server:
+  port: 8888
+

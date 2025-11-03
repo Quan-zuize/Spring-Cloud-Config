@@ -1,0 +1,17 @@
+message: "Hello from Config Server - DEV/demo-client!"
+
+app:
+  description: "Demo Client - Development Environment"
+  version: "1.0.0-DEV"
+  environment: "development"
+
+db:
+  connection:
+    timeout: 60
+  pool:
+    size: 5
+
+feature:
+  newUI: true
+  betaFeatures: true
+  debugMode: true
