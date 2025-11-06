@@ -1,8 +1,9 @@
-# Spring Cloud Config Example
+# Spring Cloud Config with Spring Cloud Bus Example
 
 This project demonstrates Spring Cloud Config with:
-- **config-service** as the centralized Config Server
+- **config-service** (demo service) as the centralized Config Server
 - **demo-client** service as the Config Client
+- **Spring Cloud Bus** with RabbitMQ for distributed configuration refresh
 
 ## Architecture
 
@@ -10,14 +11,31 @@ This project demonstrates Spring Cloud Config with:
 ┌─────────────────┐         ┌──────────────────┐         ┌─────────────────────────┐
 │                 │         │                  │         │                         │
 │  Config Client  │────────▶│  Config Server   │────────▶│  Native File System     │
-│  (demo-client)  │         │ (config-service) │         │  (config-repository)    │
+│  (demo-client)  │         │  (demo service)  │         │  (config-repository)    │
 │   Port: 8001    │         │   Port: 8888     │         │  (./config/...)         │
-└─────────────────┘         └──────────────────┘         └─────────────────────────┘
+│                 │         │                  │         │                         │
+└────────┬────────┘         └────────┬─────────┘         └─────────────────────────┘
+         │                           │
+         │      ┌────────────────────┘
+         │      │
+         └──────┼──────────────────┐
+                │                  │
+         ┌──────▼──────────────────▼───┐
+         │                              │
+         │       RabbitMQ Message Bus   │
+         │   (Spring Cloud Bus AMQP)    │
+         │                              │
+         └──────────────────────────────┘
+         
+When /actuator/busrefresh is called:
+1. Config Server broadcasts RefreshRemoteApplicationEvent via RabbitMQ
+2. All connected clients receive the event through Spring Cloud Bus
+3. Clients automatically refresh their configuration without restart
 ```
 
 ## Configuration Structure
 
-### Config Server (config-service)
+### Config Server (demo service)
 - **Port**: 8888
 - **Storage Type**: Native (File System)
 - **Repository Location**: `./config/config-repository/`
@@ -25,6 +43,12 @@ This project demonstrates Spring Cloud Config with:
 - **Annotation**: `@EnableConfigServer`
 - **Spring Boot**: 3.5.7
 - **Spring Cloud**: 2025.0.0
+- **Spring Cloud Bus**: Enabled with RabbitMQ (AMQP)
+- **Dependencies**:
+  - `spring-cloud-config-server`
+  - `spring-cloud-starter-bus-amqp`
+- **RabbitMQ**: localhost:5672 (default)
+- **Bus Refresh**: Broadcast configuration updates to all clients via `/actuator/busrefresh`
 
 ### Dynamic Search Locations Pattern
 The Config Server uses a flexible search pattern to resolve configurations:
@@ -48,11 +72,17 @@ search-locations:
 - **Port**: 8001
 - **Active Profile**: dev (configurable)
 - **Label**: demo-client (service name)
+- **Dependencies**:
+  - `spring-cloud-starter-config`
+  - `spring-cloud-starter-bus-amqp`
+- **RabbitMQ**: localhost:5672 (default)
 - **Features**:
-  - Fetches configuration from Config Server
+  - Fetches configuration from Config Server on startup
   - `@RefreshScope` for dynamic configuration updates
   - REST endpoints to view current configuration
-  - Can include common configurations
+  - Can include common configurations (application-common.yml)
+  - Automatically receives refresh events via Spring Cloud Bus
+  - No restart required when configuration changes
 
 ### Config Repository Structure
 Located in `config-service/config/config-repository/`:
@@ -80,9 +110,35 @@ config-repository/
 2. `/{profile}/common/{application}.yml` - Common config for profile
 3. `/common/{label}/{application}.yml` - Service-specific common config
 
+## Prerequisites
+
+### RabbitMQ Installation
+Spring Cloud Bus requires RabbitMQ to be running. 
+
+**Option 1: Docker (Recommended)**
+```cmd
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
+
+**Option 2: Windows Installer**
+1. Download and install [Erlang](https://www.erlang.org/downloads)
+2. Download and install [RabbitMQ](https://www.rabbitmq.com/download.html)
+3. Start RabbitMQ service
+
+**Verify RabbitMQ:**
+- Management UI: http://localhost:15672
+- Default credentials: guest/guest
+
 ## How to Run
 
-### Step 1: Start Config Server
+### Step 1: Start RabbitMQ
+Make sure RabbitMQ is running before starting the services:
+```cmd
+docker start rabbitmq
+```
+Or if using Windows service, ensure the RabbitMQ service is running.
+
+### Step 2: Start Config Server
 ```cmd
 cd C:\Users\quanna2\Downloads\demo\config-service
 mvnw spring-boot:run

@@ -1,4 +1,4 @@
-message: "Hello from Config Server - DEV/demo-client!"
+message: "Hello from Config Server - DEV123/demo-client!"
 
 app:
   description: "Demo Client - Development Environment"

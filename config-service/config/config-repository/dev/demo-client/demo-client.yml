@@ -5,5 +5,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,env,refresh"
+        include: "refresh,busrefresh,health,info"
 
+spring:
+  profiles:
+    include:
+      - rabbit
