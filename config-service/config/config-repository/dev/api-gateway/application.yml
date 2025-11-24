@@ -1,0 +1,108 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: false
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origins: "*"
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowed-headers: "*"
+                exposed-headers:
+                  - Authorization
+                max-age: 3600
+
+          routes:
+            - id: demo-client-route
+              uri: lb://demo-client
+              predicates:
+                - Path=/demo-client/**
+              filters:
+                - StripPrefix=1
+                - AddRequestHeader=X-Gateway, api-gateway
+                - name: CircuitBreaker
+                  args:
+                    name: demoClientCircuitBreaker
+                    fallbackUri: forward:/fallback/demo-client
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@demoClientRateLimiter}"
+                    key-resolver: "#{@ipKeyResolver}"
+
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET
+            backoff:
+              firstBackoff: 50ms
+              maxBackoff: 500ms
+
+  loadbalancer:
+    ribbon:
+      enabled: false
+
+rate-limit:
+  default:
+    capacity: 20
+    refill-duration-seconds: 1
+  demo-client:
+    capacity: 50
+    refill-duration-seconds: 1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,routes
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 8s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+    instances:
+      demoClientCircuitBreaker:
+        baseConfig: default
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.loadbalancer: INFO

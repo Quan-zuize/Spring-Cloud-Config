@@ -32,6 +32,7 @@
         <module>config-service</module>
         <module>eureka-server</module>
         <module>demo-client</module>
+        <module>api-gateway</module>
     </modules>
 
     <dependencyManagement>

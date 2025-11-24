@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    active: dev
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    config:
+      profile: ${spring.profiles.active}
+      label: ${spring.application.name}
+      username: admin
+      password: admin123
+      fail-fast: true
+      retry:
+        max-attempts: 50
+        max-interval: 20000
+        multiplier: 1.2
+        initial-interval: 3000
+
