@@ -10,6 +10,7 @@
         <module name="config-service" />
         <module name="demo-client" />
         <module name="eureka-server" />
+        <module name="core-domain" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -22,6 +23,7 @@
       <module name="api-gateway" options="-parameters" />
       <module name="config" options="-parameters" />
       <module name="config-service" options="-parameters" />
+      <module name="core-domain" options="-parameters" />
       <module name="demo" options="-parameters" />
       <module name="demo-client" options="-parameters" />
       <module name="eureka-server" options="-parameters" />

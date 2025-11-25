@@ -29,6 +29,7 @@
     </properties>
 
     <modules>
+        <module>common-services</module>
         <module>config-service</module>
         <module>eureka-server</module>
         <module>demo-client</module>
